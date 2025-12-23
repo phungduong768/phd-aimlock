@@ -1,196 +1,505 @@
-:root{
-  --bg:#0b0f14;
-  --panel:rgba(255,255,255,.06);
-  --panel2:rgba(255,255,255,.08);
-  --line:rgba(255,255,255,.12);
-  --txt:rgba(255,255,255,.92);
-  --muted:rgba(255,255,255,.62);
-  --good:#4ade80;
-  --warn:#fbbf24;
-  --bad:#fb7185;
-  --blue:#60a5fa;
-  --radius:16px;
+// PHD Aimlock Trainer (web) — practice only
+// Không can thiệp iOS/game. Chỉ mô phỏng + đo thao tác trong canvas.
+
+const $ = (id) => document.getElementById(id);
+
+const state = {
+  running: false,
+  mode: "diag",
+  // toggles
+  antiShakeOn: true,
+  directionOn: false,
+  snapOn: false,
+  curveOn: false,
+  guideOn: true,
+  // sliders
+  antiShake: 35,   // 0..80 (%)
+  direction: 55,   // 0..100
+  snap: 40,        // 0..100
+  curve: 55,       // 0..100
+  pull: 160,       // 80..260
+  guide: 20,       // 0..60
+  // runtime
+  pts: [],
+  filtered: [],
+  score: 0,
+  target: { x: 0.7, y: 0.35, r: 0.035, vx: 0.18, vy: 0.12 }, // relative
+};
+
+const canvas = $("arena");
+const ctx = canvas.getContext("2d");
+
+function fitCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+  canvas.width = Math.floor(rect.width * dpr);
+  canvas.height = Math.floor(rect.height * dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+window.addEventListener("resize", fitCanvas);
+
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+function lerp(a,b,t){ return a + (b-a)*t; }
+
+function uiSync() {
+  $("mode").value = state.mode;
+
+  $("togAntiShake").checked = state.antiShakeOn;
+  $("togDirection").checked = state.directionOn;
+  $("togSnap").checked = state.snapOn;
+  $("togCurve").checked = state.curveOn;
+  $("togGuide").checked = state.guideOn;
+
+  $("sAntiShake").value = state.antiShake;
+  $("sDirection").value = state.direction;
+  $("sSnap").value = state.snap;
+  $("sCurve").value = state.curve;
+  $("sPull").value = state.pull;
+  $("sGuide").value = state.guide;
+
+  $("vAntiShake").textContent = `${state.antiShake}%`;
+  $("vDirection").textContent = `${state.direction}%`;
+  $("vSnap").textContent = `${state.snap}%`;
+  $("vCurve").textContent = `${state.curve}%`;
+  $("vPull").textContent = `${state.pull}px`;
+  $("vGuide").textContent = `${state.guide}%`;
+
+  $("tMode").textContent = `Mode: ${state.mode}`;
+  $("tState").textContent = state.running ? "Đang chạy" : "Chưa bắt đầu";
+
+  $("tAS").textContent = state.antiShakeOn ? "ON" : "OFF";
+  $("tDA").textContent = state.directionOn ? "ON" : "OFF";
+  $("tSN").textContent = state.snapOn ? "ON" : "OFF";
+  $("tVC").textContent = state.curveOn ? "ON" : "OFF";
 }
 
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  background: radial-gradient(900px 500px at 20% 10%, rgba(96,165,250,.18), transparent 60%),
-              radial-gradient(900px 600px at 80% 20%, rgba(74,222,128,.10), transparent 60%),
-              var(--bg);
-  color:var(--txt);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+function loadLocal() {
+  try{
+    const raw = localStorage.getItem("PHD_AIMLOCK_PRESET_V1");
+    if(!raw) return;
+    const s = JSON.parse(raw);
+    Object.assign(state, s);
+  }catch{}
+}
+function saveLocal() {
+  const s = {
+    mode: state.mode,
+    antiShakeOn: state.antiShakeOn,
+    directionOn: state.directionOn,
+    snapOn: state.snapOn,
+    curveOn: state.curveOn,
+    guideOn: state.guideOn,
+    antiShake: state.antiShake,
+    direction: state.direction,
+    snap: state.snap,
+    curve: state.curve,
+    pull: state.pull,
+    guide: state.guide
+  };
+  localStorage.setItem("PHD_AIMLOCK_PRESET_V1", JSON.stringify(s));
 }
 
-.topbar{
-  position:sticky; top:0; z-index:10;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 16px;
-  background: rgba(7,10,14,.75);
-  backdrop-filter: blur(10px);
-  border-bottom:1px solid var(--line);
+function resetSession() {
+  state.running = false;
+  state.pts = [];
+  state.filtered = [];
+  state.score = 0;
+  $("stStab").textContent = "—";
+  $("stJit").textContent = "—";
+  $("stDev").textContent = "—";
+  $("stScore").textContent = "—";
+  uiSync();
 }
 
-.brand{display:flex; gap:12px; align-items:center}
-.dot{width:10px;height:10px;border-radius:999px;background:var(--good); box-shadow:0 0 18px rgba(74,222,128,.6)}
-.title{font-weight:800; letter-spacing:.2px}
-.sub{color:var(--muted); font-size:12px; margin-top:2px}
-
-.right{display:flex; gap:8px; flex-wrap:wrap}
-.btn{
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.06);
-  color:var(--txt);
-  padding:10px 12px;
-  border-radius:12px;
-  cursor:pointer;
-  font-weight:700;
-}
-.btn:hover{background:rgba(255,255,255,.10)}
-.btn.primary{border-color:rgba(96,165,250,.45); background:rgba(96,165,250,.15)}
-.btn.primary:hover{background:rgba(96,165,250,.22)}
-.btn.danger{border-color:rgba(251,113,133,.45); background:rgba(251,113,133,.12)}
-
-.wrap{
-  max-width:1100px;
-  margin:18px auto 30px;
-  padding:0 14px;
-  display:grid;
-  gap:14px;
+function setScore(stab, jit, dev, hits){
+  // stab 0..100 higher better
+  // jit 0..100 lower better
+  // dev 0..100 lower better
+  const s = clamp(stab,0,100)*0.5 + (100-clamp(jit,0,100))*0.25 + (100-clamp(dev,0,100))*0.25 + hits*4;
+  state.score = Math.round(s);
+  $("stScore").textContent = state.score.toString();
 }
 
-.panel{
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  padding:14px;
+// ====== Trainer math (practice only) ======
+function applyVelocityCurve(dx, dy, dtMs){
+  if(!state.curveOn) return {dx, dy};
+  const speed = Math.hypot(dx,dy) / Math.max(1, dtMs); // px/ms
+  // curve: higher => more damping when fast
+  const k = state.curve / 100; // 0..1
+  const damp = clamp(1 - k * clamp((speed - 0.25) / 0.9, 0, 0.65), 0.35, 1);
+  return { dx: dx * damp, dy: dy * damp };
 }
 
-h2{
-  margin:0 0 10px;
-  font-size:16px;
-  letter-spacing:.2px;
+function antiShakeFilter(x, y){
+  // exponential smoothing: higher antiShake => smoother
+  if(state.filtered.length === 0) return {x,y};
+  if(!state.antiShakeOn) return {x,y};
+  const last = state.filtered[state.filtered.length - 1];
+  const a = clamp(state.antiShake / 80, 0, 1);     // 0..1
+  const t = clamp(0.12 + a*0.55, 0.12, 0.67);      // smoothing factor
+  return { x: lerp(last.x, x, 1 - t), y: lerp(last.y, y, 1 - t) };
 }
 
-.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-.chip{
-  display:flex; gap:10px; align-items:center;
-  padding:10px 12px;
-  border:1px solid var(--line);
-  border-radius:999px;
-  background:rgba(255,255,255,.05);
-  user-select:none;
-}
-.chip input{transform:scale(1.1)}
+function directionAssist(pt){
+  if(!state.directionOn || state.filtered.length < 2) return pt;
+  // keep direction: project movement to dominant axis direction (based on last motion)
+  const strength = state.direction / 100; // 0..1
+  const a = state.filtered[state.filtered.length - 2];
+  const b = state.filtered[state.filtered.length - 1];
+  const vx = b.x - a.x;
+  const vy = b.y - a.y;
 
-.grid2{
-  margin-top:12px;
-  display:grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap:12px;
-}
-@media (max-width: 900px){ .grid2{grid-template-columns:1fr;} }
+  // dominant axis
+  const ax = Math.abs(vx) >= Math.abs(vy) ? 1 : 0;
+  const ay = 1 - ax;
 
-.ctrl{
-  padding:12px;
-  border:1px solid var(--line);
-  border-radius:14px;
-  background:rgba(255,255,255,.05);
-}
-.ctrlHead{display:flex; justify-content:space-between; align-items:center; font-weight:800}
-.val{color:var(--blue)}
-.hint{margin-top:6px; color:var(--muted); font-size:12px}
-
-input[type="range"]{
-  width:100%;
-  margin-top:8px;
-  accent-color: var(--blue);
+  const x = lerp(pt.x, ax ? pt.x : b.x, strength*0.45);
+  const y = lerp(pt.y, ay ? pt.y : b.y, strength*0.45);
+  return {x,y};
 }
 
-.actions{margin-top:12px}
-.mode{
-  display:flex; align-items:center; gap:8px;
-  margin-left:auto;
-  padding:8px 10px;
-  border:1px solid var(--line);
-  border-radius:12px;
-  background:rgba(255,255,255,.04);
-}
-select{
-  background:rgba(255,255,255,.06);
-  color:var(--txt);
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:8px 10px;
+function snapToTarget(pt){
+  if(!state.snapOn) return pt;
+  // snap only in canvas, to the target center if within radius
+  const s = state.snap / 100; // 0..1
+  const w = canvas.getBoundingClientRect().width;
+  const h = canvas.getBoundingClientRect().height;
+  const tx = state.target.x * w;
+  const ty = state.target.y * h;
+
+  const r = Math.max(18, state.target.r * Math.min(w,h) * (1 + s*1.2));
+  const d = Math.hypot(pt.x - tx, pt.y - ty);
+
+  if(d > r) return pt;
+
+  // pull in
+  const pull = clamp((1 - d/r) * (0.10 + s*0.35), 0, 0.45);
+  return { x: lerp(pt.x, tx, pull), y: lerp(pt.y, ty, pull) };
 }
 
-.arenaWrap{
-  position:relative;
-  margin-top:10px;
-  border:1px solid var(--line);
-  border-radius:18px;
-  overflow:hidden;
-  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-  min-height:520px;
-}
-#arena{
-  width:100%;
-  height:520px;
-  display:block;
-  touch-action:none;
+function pullLimit(pt, origin){
+  const dx = pt.x - origin.x;
+  const dy = pt.y - origin.y;
+  const d = Math.hypot(dx,dy);
+  const lim = state.pull;
+  if(d <= lim) return pt;
+  const t = lim / d;
+  return { x: origin.x + dx*t, y: origin.y + dy*t };
 }
 
-.hud{
-  position:absolute;
-  left:12px; top:12px;
-  right:12px;
-  background:rgba(0,0,0,.35);
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:14px;
-  padding:10px 12px;
-  backdrop-filter: blur(8px);
-}
-.hudRow{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
-.hudRow.small{margin-top:6px; color:var(--muted); font-size:12px}
+// ====== Metrics ======
+function computeMetrics(){
+  if(state.filtered.length < 6) return;
 
-.tag{
-  border:1px solid rgba(255,255,255,.14);
-  padding:6px 9px;
-  border-radius:999px;
-  font-size:12px;
-  background:rgba(255,255,255,.06);
+  // jitter: angle change std
+  const angles = [];
+  for(let i=2;i<state.filtered.length;i++){
+    const p0 = state.filtered[i-1], p1 = state.filtered[i];
+    angles.push(Math.atan2(p1.y - p0.y, p1.x - p0.x));
+  }
+  // angle diffs
+  const diffs = [];
+  for(let i=1;i<angles.length;i++){
+    let d = angles[i] - angles[i-1];
+    while(d > Math.PI) d -= Math.PI*2;
+    while(d < -Math.PI) d += Math.PI*2;
+    diffs.push(d);
+  }
+  const mean = diffs.reduce((a,b)=>a+b,0)/Math.max(1,diffs.length);
+  const varr = diffs.reduce((a,b)=>a+(b-mean)*(b-mean),0)/Math.max(1,diffs.length);
+  const std = Math.sqrt(varr);
+
+  // deviation: distance to guide line (diag/vertical)
+  const w = canvas.getBoundingClientRect().width;
+  const h = canvas.getBoundingClientRect().height;
+  const o = state.filtered[0];
+  let devSum = 0;
+  let n = 0;
+
+  for(const p of state.filtered){
+    let dev = 0;
+    if(state.mode === "diag" || state.mode === "flick"){
+      // line y = o.y - (x - o.x)  (45° up-right in canvas coords)
+      const a = 1, b = 1, c = -(o.x + o.y); // x + y - (o.x+o.y)=0
+      dev = Math.abs(a*p.x + b*p.y + c)/Math.sqrt(a*a+b*b);
+    }else if(state.mode === "vertical"){
+      dev = Math.abs(p.x - o.x);
+    }else{
+      dev = 0; // tracking uses different measure
+    }
+    devSum += dev;
+    n++;
+  }
+  const devAvg = devSum / Math.max(1,n);
+
+  // stability: based on (1 - normalized jitter & dev)
+  const jitNorm = clamp(std / 0.20, 0, 1) * 100;         // 0..100
+  const devNorm = clamp(devAvg / 35, 0, 1) * 100;        // 0..100
+  const stab = Math.round(clamp(100 - (jitNorm*0.55 + devNorm*0.45), 0, 100));
+
+  $("stStab").textContent = `${stab}%`;
+  $("stJit").textContent = `${Math.round(jitNorm)}%`;
+  $("stDev").textContent = `${Math.round(devNorm)}%`;
+
+  // hit score (how often near target)
+  let hits = 0;
+  const tx = state.target.x*w, ty = state.target.y*h;
+  const hitR = Math.max(16, state.target.r*Math.min(w,h));
+  for(const p of state.filtered){
+    if(Math.hypot(p.x-tx,p.y-ty) <= hitR) hits++;
+  }
+  setScore(stab, Math.round(jitNorm), Math.round(devNorm), Math.round(hits/12));
 }
 
-.stats{
-  position:absolute;
-  right:12px; bottom:12px;
-  display:grid;
-  grid-template-columns: repeat(2, 160px);
-  gap:10px;
-}
-@media (max-width: 900px){
-  .stats{grid-template-columns: repeat(2, 140px);}
-}
-.stat{
-  background:rgba(0,0,0,.35);
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:14px;
-  padding:10px 12px;
-  backdrop-filter: blur(8px);
-}
-.stat .k{color:var(--muted); font-size:12px}
-.stat .v{font-weight:900; font-size:16px; margin-top:4px}
+// ====== Canvas draw ======
+function draw(){
+  const w = canvas.getBoundingClientRect().width;
+  const h = canvas.getBoundingClientRect().height;
 
-.note{
-  margin-top:12px;
-  color:var(--muted);
-  font-size:12px;
+  ctx.clearRect(0,0,w,h);
+
+  // grid
+  ctx.globalAlpha = 0.20;
+  ctx.beginPath();
+  for(let x=0;x<w;x+=40){ ctx.moveTo(x,0); ctx.lineTo(x,h); }
+  for(let y=0;y<h;y+=40){ ctx.moveTo(0,y); ctx.lineTo(w,y); }
+  ctx.strokeStyle = "white";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // guide line
+  if(state.guideOn){
+    ctx.globalAlpha = clamp(state.guide/60, 0, 1)*0.55;
+    ctx.beginPath();
+    const o = state.filtered[0] || {x: w*0.2, y: h*0.8};
+    if(state.mode === "diag" || state.mode === "flick"){
+      ctx.moveTo(o.x - 9999, o.y + 9999);
+      ctx.lineTo(o.x + 9999, o.y - 9999);
+    }else if(state.mode === "vertical"){
+      ctx.moveTo(o.x, 0);
+      ctx.lineTo(o.x, h);
+    }
+    ctx.strokeStyle = "#60a5fa";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10,10]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  }
+
+  // target
+  if(state.mode === "track" || state.mode === "flick"){
+    const tx = state.target.x*w;
+    const ty = state.target.y*h;
+    const r = state.target.r*Math.min(w,h);
+    ctx.beginPath();
+    ctx.arc(tx,ty,r,0,Math.PI*2);
+    ctx.strokeStyle = "#4ade80";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(tx,ty,4,0,Math.PI*2);
+    ctx.fillStyle = "#4ade80";
+    ctx.fill();
+  }
+
+  // path
+  if(state.filtered.length >= 2){
+    ctx.beginPath();
+    ctx.moveTo(state.filtered[0].x, state.filtered[0].y);
+    for(let i=1;i<state.filtered.length;i++){
+      ctx.lineTo(state.filtered[i].x, state.filtered[i].y);
+    }
+    ctx.strokeStyle = "rgba(255,255,255,.85)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+
+  // crosshair at last
+  const last = state.filtered[state.filtered.length-1];
+  if(last){
+    ctx.beginPath();
+    ctx.arc(last.x,last.y,8,0,Math.PI*2);
+    ctx.strokeStyle = "#fbbf24";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
 }
 
-.foot{
-  color:rgba(255,255,255,.45);
-  text-align:center;
-  padding:16px 10px 30px;
-  font-size:12px;
+let lastT = 0;
+function tick(t){
+  if(!state.running){ draw(); return; }
+  const dt = Math.min(40, Math.max(1, t - lastT));
+  lastT = t;
+
+  // move target (track mode)
+  if(state.mode === "track"){
+    const w = canvas.getBoundingClientRect().width;
+    const h = canvas.getBoundingClientRect().height;
+    state.target.x += state.target.vx * (dt/1000);
+    state.target.y += state.target.vy * (dt/1000);
+    if(state.target.x < 0.15 || state.target.x > 0.85) state.target.vx *= -1;
+    if(state.target.y < 0.18 || state.target.y > 0.78) state.target.vy *= -1;
+    state.target.x = clamp(state.target.x, 0.12, 0.88);
+    state.target.y = clamp(state.target.y, 0.14, 0.86);
+  }
+
+  draw();
+  requestAnimationFrame(tick);
 }
+
+// ====== Pointer handling ======
+let pointerDown = false;
+let origin = null;
+let lastPt = null;
+let lastTime = 0;
+
+function getXY(e){
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX ?? e.touches?.[0]?.clientX) - rect.left;
+  const y = (e.clientY ?? e.touches?.[0]?.clientY) - rect.top;
+  return {x, y};
+}
+
+function onDown(e){
+  if(!state.running) return;
+  pointerDown = true;
+  state.pts = [];
+  state.filtered = [];
+  origin = getXY(e);
+  lastPt = origin;
+  lastTime = performance.now();
+  state.pts.push({ ...origin, t:lastTime });
+  state.filtered.push({ ...origin, t:lastTime });
+}
+
+function onMove(e){
+  if(!pointerDown || !state.running) return;
+  const now = performance.now();
+  const p = getXY(e);
+
+  // delta
+  let dx = p.x - lastPt.x;
+  let dy = p.y - lastPt.y;
+
+  // velocity curve (damping when fast)
+  const v = applyVelocityCurve(dx, dy, now - lastTime);
+  dx = v.dx; dy = v.dy;
+
+  // reconstruct point
+  let nx = lastPt.x + dx;
+  let ny = lastPt.y + dy;
+
+  // pull limit relative to origin
+  let limited = pullLimit({x:nx, y:ny}, origin);
+
+  // anti-shake (smooth)
+  let filtered = antiShakeFilter(limited.x, limited.y);
+
+  // direction assist
+  filtered = directionAssist(filtered);
+
+  // snap zone (only in arena)
+  filtered = snapToTarget(filtered);
+
+  // keep inside canvas
+  const w = canvas.getBoundingClientRect().width;
+  const h = canvas.getBoundingClientRect().height;
+  filtered.x = clamp(filtered.x, 0, w);
+  filtered.y = clamp(filtered.y, 0, h);
+
+  state.pts.push({ x:p.x, y:p.y, t:now });
+  state.filtered.push({ x:filtered.x, y:filtered.y, t:now });
+
+  lastPt = {x:filtered.x, y:filtered.y};
+  lastTime = now;
+
+  computeMetrics();
+}
+
+function onUp(){
+  pointerDown = false;
+  origin = null;
+  lastPt = null;
+  lastTime = 0;
+}
+
+// ====== Events ======
+function bind(){
+  // toggles
+  $("togAntiShake").addEventListener("change", e=>{ state.antiShakeOn = e.target.checked; uiSync(); });
+  $("togDirection").addEventListener("change", e=>{ state.directionOn = e.target.checked; uiSync(); });
+  $("togSnap").addEventListener("change", e=>{ state.snapOn = e.target.checked; uiSync(); });
+  $("togCurve").addEventListener("change", e=>{ state.curveOn = e.target.checked; uiSync(); });
+  $("togGuide").addEventListener("change", e=>{ state.guideOn = e.target.checked; uiSync(); });
+
+  // sliders
+  $("sAntiShake").addEventListener("input", e=>{ state.antiShake = +e.target.value; uiSync(); });
+  $("sDirection").addEventListener("input", e=>{ state.direction = +e.target.value; uiSync(); });
+  $("sSnap").addEventListener("input", e=>{ state.snap = +e.target.value; uiSync(); });
+  $("sCurve").addEventListener("input", e=>{ state.curve = +e.target.value; uiSync(); });
+  $("sPull").addEventListener("input", e=>{ state.pull = +e.target.value; uiSync(); });
+  $("sGuide").addEventListener("input", e=>{ state.guide = +e.target.value; uiSync(); });
+
+  // mode
+  $("mode").addEventListener("change", e=>{
+    state.mode = e.target.value;
+    uiSync();
+    resetSession();
+  });
+
+  // buttons
+  $("btnStart").addEventListener("click", ()=>{
+    state.running = true;
+    uiSync();
+    lastT = performance.now();
+    requestAnimationFrame(tick);
+  });
+  $("btnStop").addEventListener("click", ()=>{
+    state.running = false;
+    uiSync();
+    draw();
+  });
+  $("btnReset").addEventListener("click", ()=>{
+    resetSession();
+    draw();
+  });
+
+  $("btnSave").addEventListener("click", ()=>{
+    saveLocal();
+    alert("Đã lưu preset trên máy (trình duyệt).");
+  });
+  $("btnLoad").addEventListener("click", ()=>{
+    loadLocal();
+    uiSync();
+    alert("Đã tải preset.");
+  });
+  $("btnExport").addEventListener("click", ()=>{
+    const s = {
+      mode: state.mode,
+      toggles: { antiShakeOn:state.antiShakeOn, directionOn:state.directionOn, snapOn:state.snapOn, curveOn:state.curveOn, guideOn:state.guideOn },
+      sliders: { antiShake:state.antiShake, direction:state.direction, snap:state.snap, curve:state.curve, pull:state.pull, guide:state.guide }
+    };
+    navigator.clipboard?.writeText(JSON.stringify(s,null,2));
+    alert("Đã copy preset JSON vào clipboard.");
+  });
+
+  // canvas pointer
+  canvas.addEventListener("pointerdown", (e)=>{ canvas.setPointerCapture(e.pointerId); onDown(e); });
+  canvas.addEventListener("pointermove", onMove);
+  canvas.addEventListener("pointerup", onUp);
+  canvas.addEventListener("pointercancel", onUp);
+}
+
+function init(){
+  fitCanvas();
+  loadLocal();
+  uiSync();
+  bind();
+  resetSession();
+  draw();
+}
+
+init();
