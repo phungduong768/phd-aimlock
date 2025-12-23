@@ -12,6 +12,28 @@
  */
 
 const $ = (id)=>document.getElementById(id);
+function setStatus(isOn, msg){
+  const dot = $("statusDot");
+  const text = $("statusText");
+  if(!dot || !text) return;
+
+  dot.classList.toggle("on", !!isOn);
+  dot.classList.toggle("off", !isOn);
+  text.textContent = isOn ? "Đã bật" : "Chưa bật";
+
+  if(msg) toast(msg);
+}
+
+let toastTimer = null;
+function toast(message){
+  const t = $("toast");
+  if(!t) return;
+  t.textContent = message;
+  t.classList.remove("hidden");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.add("hidden"), 1700);
+}
+
 
 // ===== Canvas setup =====
 const canvas = $("pad");
