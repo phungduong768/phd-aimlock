@@ -7,106 +7,159 @@
   <title>PHD Aimlock Trainer</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
-  <header class="top">
+  <header class="topbar">
     <div class="brand">
       <div class="dot"></div>
       <div>
-        <div class="t1">PHD Aimlock Trainer</div>
-        <div class="t2">Full Control • chỉ luyện tay • không can thiệp game</div>
+        <div class="title">PHD Aimlock Trainer</div>
+        <div class="sub">Trainer luyện kéo tâm • ổn định tay • không can thiệp game</div>
       </div>
+    </div>
+
+    <div class="right">
+      <button id="btnSave" class="btn">Lưu preset</button>
+      <button id="btnLoad" class="btn">Tải preset</button>
+      <button id="btnExport" class="btn">Xuất JSON</button>
     </div>
   </header>
 
   <main class="wrap">
-    <section class="card">
-      <h2>FULL CONTROL (Bật/Tắt + Slider)</h2>
-      <p class="sub">Mọi hiệu ứng chỉ áp dụng lên đường vuốt trong Trainer.</p>
-
-      <div class="ctrl">
-        <label><input type="checkbox" id="as_on"> Giảm rung (Anti‑Shake)</label>
-        <input type="range" id="as_level" min="0" max="100" value="35">
-        <span class="val" id="as_val">35%</span>
-      </div>
-
-      <div class="ctrl">
-        <label><input type="checkbox" id="da_on"> Giữ hướng (Direction Assist)</label>
-        <input type="range" id="da_level" min="0" max="100" value="70">
-        <span class="val" id="da_val">70%</span>
-      </div>
-
-      <div class="ctrl">
-        <label><input type="checkbox" id="hs_on"> Hút vùng head (Snap Zone)</label>
-        <input type="range" id="hs_level" min="0" max="100" value="45">
-        <span class="val" id="hs_val">45%</span>
-      </div>
-
-      <div class="ctrl">
-        <label><input type="checkbox" id="vc_on"> Đường cong tốc độ (Velocity Curve)</label>
-        <input type="range" id="vc_level" min="0" max="100" value="60">
-        <span class="val" id="vc_val">60%</span>
-      </div>
-
-      <div class="ctrl">
-        <label><input type="checkbox" id="pl_on"> Giới hạn biên độ (Pull Limit)</label>
-        <input type="range" id="pl_level" min="60" max="320" value="160">
-        <span class="val" id="pl_val">160px</span>
-      </div>
-
-      <div class="ctrl">
-        <label><input type="checkbox" id="hg_on"> Guide (đường chéo)</label>
-        <input type="range" id="hg_level" min="5" max="30" value="15">
-        <span class="val" id="hg_val">15%</span>
-      </div>
+    <section class="panel">
+      <h2>1) Điều khiển & Preset</h2>
 
       <div class="row">
-        <button id="startTest" class="btn">Bắt đầu test</button>
-        <button id="stopTest" class="btn ghost">Dừng</button>
-        <button id="resetAll" class="pill ghost">Reset</button>
+        <label class="chip">
+          <input type="checkbox" id="togAntiShake" checked>
+          <span>Giảm rung (Anti-Shake)</span>
+        </label>
+
+        <label class="chip">
+          <input type="checkbox" id="togDirection">
+          <span>Giữ hướng (Direction Assist)</span>
+        </label>
+
+        <label class="chip">
+          <input type="checkbox" id="togSnap">
+          <span>Snap zone (hút điểm mục tiêu)</span>
+        </label>
+
+        <label class="chip">
+          <input type="checkbox" id="togCurve">
+          <span>Velocity Curve (đường cong tốc độ)</span>
+        </label>
+
+        <label class="chip">
+          <input type="checkbox" id="togGuide" checked>
+          <span>Guide đường chéo</span>
+        </label>
       </div>
 
-      <div class="hint">
-        Preset gợi ý (iPhone 12 Pro Max): Anti‑Shake 30–40% • Direction 60–80% • Snap 35–55% • Curve 45–70% • PullLimit 140–180px
+      <div class="grid2">
+        <div class="ctrl">
+          <div class="ctrlHead">
+            <div>Anti-Shake</div><div class="val" id="vAntiShake">35%</div>
+          </div>
+          <input id="sAntiShake" type="range" min="0" max="80" value="35" />
+          <div class="hint">Giảm rung càng cao càng “mượt” nhưng có thể chậm phản ứng.</div>
+        </div>
+
+        <div class="ctrl">
+          <div class="ctrlHead">
+            <div>Direction Assist</div><div class="val" id="vDirection">55%</div>
+          </div>
+          <input id="sDirection" type="range" min="0" max="100" value="55" />
+          <div class="hint">Giữ trục vuốt ổn định (giảm lệch hướng).</div>
+        </div>
+
+        <div class="ctrl">
+          <div class="ctrlHead">
+            <div>Snap Zone</div><div class="val" id="vSnap">40%</div>
+          </div>
+          <input id="sSnap" type="range" min="0" max="100" value="40" />
+          <div class="hint">Mô phỏng “hút” về tâm mục tiêu trong khu luyện.</div>
+        </div>
+
+        <div class="ctrl">
+          <div class="ctrlHead">
+            <div>Velocity Curve</div><div class="val" id="vCurve">55%</div>
+          </div>
+          <input id="sCurve" type="range" min="0" max="100" value="55" />
+          <div class="hint">Vuốt nhanh → giảm văng, vuốt chậm → kiểm soát tốt.</div>
+        </div>
+
+        <div class="ctrl">
+          <div class="ctrlHead">
+            <div>Pull Limit</div><div class="val" id="vPull">160px</div>
+          </div>
+          <input id="sPull" type="range" min="80" max="260" value="160" />
+          <div class="hint">Giới hạn biên độ kéo trong khu luyện để tập “đúng lực”.</div>
+        </div>
+
+        <div class="ctrl">
+          <div class="ctrlHead">
+            <div>Guide strength</div><div class="val" id="vGuide">20%</div>
+          </div>
+          <input id="sGuide" type="range" min="0" max="60" value="20" />
+          <div class="hint">Vẽ đường chéo tham chiếu (không can thiệp gì ngoài khung luyện).</div>
+        </div>
+      </div>
+
+      <div class="row actions">
+        <button id="btnStart" class="btn primary">Bắt đầu</button>
+        <button id="btnStop" class="btn">Dừng</button>
+        <button id="btnReset" class="btn danger">Reset</button>
+
+        <div class="mode">
+          <span>Chế độ:</span>
+          <select id="mode">
+            <option value="diag">Kéo chéo (lên đầu)</option>
+            <option value="vertical">Kéo dọc (recoil)</option>
+            <option value="track">Track mục tiêu</option>
+            <option value="flick">Flick mục tiêu</option>
+          </select>
+        </div>
       </div>
     </section>
 
-    <section class="card">
-      <h2>Khu luyện đường vuốt</h2>
-      <p class="sub">Vuốt trong khung. Bật Direction/Snap/Curve để cảm giác “aim hơn” khi kéo tâm (chỉ luyện).</p>
+    <section class="panel">
+      <h2>2) Khu luyện (Overlay / Canvas)</h2>
 
-      <div class="padWrap">
-        <canvas id="pad"></canvas>
+      <div class="arenaWrap">
+        <canvas id="arena"></canvas>
 
-        <div id="overlay" class="overlay">
-          <div class="ov-left">
-            <div class="ov-title">Overlay Quét thao tác</div>
-            <div class="ov-stat" id="ovStat">Chưa chạy</div>
+        <div class="hud">
+          <div class="hudRow">
+            <span class="tag" id="tMode">Mode: diag</span>
+            <span class="tag" id="tState">Chưa bắt đầu</span>
+            <span class="tag">AS: <b id="tAS">ON</b></span>
+            <span class="tag">DA: <b id="tDA">OFF</b></span>
+            <span class="tag">SN: <b id="tSN">OFF</b></span>
+            <span class="tag">VC: <b id="tVC">OFF</b></span>
           </div>
-          <div class="ov-right">
-            <button id="toggleOverlay" class="pill">Overlay: Bật</button>
-            <button id="toggleRecord" class="pill">Ghi dữ liệu: Tắt</button>
-            <button id="exportData" class="pill ghost">Xuất JSON</button>
+          <div class="hudRow small">
+            Vuốt trong khung. App đo: lệch hướng • rung • mượt • tốc độ và gợi ý preset.
           </div>
         </div>
 
-        <div class="padHud">
-          <div id="hud">Chưa bắt đầu</div>
-          <div class="chips">
-            <span class="chip" id="chipAS">AS: Off</span>
-            <span class="chip" id="chipDA">DA: Off</span>
-            <span class="chip" id="chipHS">HS: Off</span>
-            <span class="chip" id="chipVC">VC: Off</span>
-          </div>
+        <div class="stats">
+          <div class="stat"><div class="k">Độ ổn định</div><div class="v" id="stStab">—</div></div>
+          <div class="stat"><div class="k">Rung tay</div><div class="v" id="stJit">—</div></div>
+          <div class="stat"><div class="k">Lệch hướng</div><div class="v" id="stDev">—</div></div>
+          <div class="stat"><div class="k">Điểm</div><div class="v" id="stScore">—</div></div>
         </div>
       </div>
-    </section>
 
-    <section class="card">
-      <h2>Kết quả</h2>
-      <div class="mono" id="result">Chưa có dữ liệu. Nhấn “Bắt đầu test”.</div>
-      <p class="hint">*Xuất JSON chỉ để bạn lưu/so sánh tiến bộ, không dùng cho game.</p>
+      <div class="note">
+        Gợi ý: iPhone 12 Pro Max • 3 ngón/hỗn hợp → ưu tiên Anti-Shake 25–45%, Direction 45–70%, Snap 30–55%, Curve 40–70%, PullLimit 140–190px.
+      </div>
     </section>
   </main>
+
+  <footer class="foot">
+    PHD Aimlock Trainer — demo luyện tay. Không can thiệp iOS/game. Preset lưu trên máy (local).
+  </footer>
 
   <script src="app.js"></script>
 </body>
