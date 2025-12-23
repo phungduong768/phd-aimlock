@@ -106,10 +106,24 @@
         </div>
       </div>
 
-      <div class="row actions">
-        <button id="btnStart" class="btn primary">Bắt đầu</button>
-        <button id="btnStop" class="btn">Dừng</button>
-        <button id="btnReset" class="btn danger">Reset</button>
+     <div class="btnRow">
+  <button id="btnStart" class="primary">Bắt đầu test</button>
+  <button id="btnStop" class="ghost">Dừng</button>
+  <button id="btnReset" class="danger">Reset</button>
+
+  <button id="btnFF" class="ff">Bấm vào FF</button>
+</div>
+
+<div class="statusRow">
+  <span id="statusDot" class="dot off"></span>
+  <span id="statusText" class="statusText">Chưa bật</span>
+
+  <span class="hint">
+    (Bật 1 tính năng bất kỳ hoặc bấm “Bắt đầu test” để chuyển sang Đang chạy)
+  </span>
+</div>
+
+<div id="toast" class="toast hidden"></div>
 
         <div class="mode">
           <span>Chế độ:</span>
