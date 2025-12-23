@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>PHD Aimlock Trainer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <div class="dot"></div>
+      <div>
+        <div class="t1">PHD Aimlock Trainer</div>
+        <div class="t2">Full Control • chỉ luyện tay • không can thiệp game</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <h2>FULL CONTROL (Bật/Tắt + Slider)</h2>
+      <p class="sub">Mọi hiệu ứng chỉ áp dụng lên đường vuốt trong Trainer.</p>
+
+      <div class="ctrl">
+        <label><input type="checkbox" id="as_on"> Giảm rung (Anti‑Shake)</label>
+        <input type="range" id="as_level" min="0" max="100" value="35">
+        <span class="val" id="as_val">35%</span>
+      </div>
+
+      <div class="ctrl">
+        <label><input type="checkbox" id="da_on"> Giữ hướng (Direction Assist)</label>
+        <input type="range" id="da_level" min="0" max="100" value="70">
+        <span class="val" id="da_val">70%</span>
+      </div>
+
+      <div class="ctrl">
+        <label><input type="checkbox" id="hs_on"> Hút vùng head (Snap Zone)</label>
+        <input type="range" id="hs_level" min="0" max="100" value="45">
+        <span class="val" id="hs_val">45%</span>
+      </div>
+
+      <div class="ctrl">
+        <label><input type="checkbox" id="vc_on"> Đường cong tốc độ (Velocity Curve)</label>
+        <input type="range" id="vc_level" min="0" max="100" value="60">
+        <span class="val" id="vc_val">60%</span>
+      </div>
+
+      <div class="ctrl">
+        <label><input type="checkbox" id="pl_on"> Giới hạn biên độ (Pull Limit)</label>
+        <input type="range" id="pl_level" min="60" max="320" value="160">
+        <span class="val" id="pl_val">160px</span>
+      </div>
+
+      <div class="ctrl">
+        <label><input type="checkbox" id="hg_on"> Guide (đường chéo)</label>
+        <input type="range" id="hg_level" min="5" max="30" value="15">
+        <span class="val" id="hg_val">15%</span>
+      </div>
+
+      <div class="row">
+        <button id="startTest" class="btn">Bắt đầu test</button>
+        <button id="stopTest" class="btn ghost">Dừng</button>
+        <button id="resetAll" class="pill ghost">Reset</button>
+      </div>
+
+      <div class="hint">
+        Preset gợi ý (iPhone 12 Pro Max): Anti‑Shake 30–40% • Direction 60–80% • Snap 35–55% • Curve 45–70% • PullLimit 140–180px
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Khu luyện đường vuốt</h2>
+      <p class="sub">Vuốt trong khung. Bật Direction/Snap/Curve để cảm giác “aim hơn” khi kéo tâm (chỉ luyện).</p>
+
+      <div class="padWrap">
+        <canvas id="pad"></canvas>
+
+        <div id="overlay" class="overlay">
+          <div class="ov-left">
+            <div class="ov-title">Overlay Quét thao tác</div>
+            <div class="ov-stat" id="ovStat">Chưa chạy</div>
+          </div>
+          <div class="ov-right">
+            <button id="toggleOverlay" class="pill">Overlay: Bật</button>
+            <button id="toggleRecord" class="pill">Ghi dữ liệu: Tắt</button>
+            <button id="exportData" class="pill ghost">Xuất JSON</button>
+          </div>
+        </div>
+
+        <div class="padHud">
+          <div id="hud">Chưa bắt đầu</div>
+          <div class="chips">
+            <span class="chip" id="chipAS">AS: Off</span>
+            <span class="chip" id="chipDA">DA: Off</span>
+            <span class="chip" id="chipHS">HS: Off</span>
+            <span class="chip" id="chipVC">VC: Off</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Kết quả</h2>
+      <div class="mono" id="result">Chưa có dữ liệu. Nhấn “Bắt đầu test”.</div>
+      <p class="hint">*Xuất JSON chỉ để bạn lưu/so sánh tiến bộ, không dùng cho game.</p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
