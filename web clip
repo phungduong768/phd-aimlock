@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>PayloadContent</key>
+  <array>
+    <dict>
+      <key>PayloadType</key>
+      <string>com.apple.webClip.managed</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
+      <key>PayloadIdentifier</key>
+      <string>com.phd.aimlock.webclip</string>
+      <key>PayloadUUID</key>
+      <string>PHD-AIMLOCK-WEBCLIP</string>
+      <key>PayloadDisplayName</key>
+      <string>PHD Aimlock</string>
+
+      <key>Label</key>
+      <string>PHD Aimlock</string>
+      <key>URL</key>
+      <string>https://phungduong768.github.io/phd-aimlock/</string>
+      <key>FullScreen</key>
+      <true/>
+      <key>IsRemovable</key>
+      <true/>
+      <key>Precomposed</key>
+      <true/>
+    </dict>
+  </array>
+
+  <key>PayloadType</key>
+  <string>Configuration</string>
+  <key>PayloadVersion</key>
+  <integer>1</integer>
+  <key>PayloadIdentifier</key>
+  <string>com.phd.aimlock.profile</string>
+  <key>PayloadUUID</key>
+  <string>PHD-AIMLOCK-PROFILE</string>
+  <key>PayloadDisplayName</key>
+  <string>PHD Aimlock Profile</string>
+</dict>
+</plist>
