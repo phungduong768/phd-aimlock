@@ -1,43 +1,194 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>PayloadContent</key>
-  <array>
-    <dict>
-      <key>PayloadType</key>
-      <string>com.apple.webClip.managed</string>
-      <key>PayloadVersion</key>
-      <integer>1</integer>
-      <key>PayloadIdentifier</key>
-      <string>com.phd.aimlock.webclip</string>
-      <key>PayloadUUID</key>
-      <string>PHD-AIMLOCK-WEBCLIP</string>
-      <key>PayloadDisplayName</key>
-      <string>PHD Aimlock</string>
 
-      <key>Label</key>
-      <string>PHD Aimlock</string>
-      <key>URL</key>
-      <string>https://phungduong768.github.io/phd-aimlock/</string>
-      <key>FullScreen</key>
-      <true/>
-      <key>IsRemovable</key>
-      <true/>
-      <key>Precomposed</key>
-      <true/>
-    </dict>
-  </array>
+[Aimbot Main]
+Enabled = true;
+Aim Button = 0;
+Aim Filter = 2;
+Aim Tag = 7;
+Remove Spread = true;
+Remove Recoil = true;
+Remove Flinch = true;
+Remove Sway = true;
 
-  <key>PayloadType</key>
-  <string>Configuration</string>
-  <key>PayloadVersion</key>
-  <integer>1</integer>
-  <key>PayloadIdentifier</key>
-  <string>com.phd.aimlock.profile</string>
-  <key>PayloadUUID</key>
-  <string>PHD-AIMLOCK-PROFILE</string>
-  <key>PayloadDisplayName</key>
-  <string>PHD Aimlock Profile</string>
-</dict>
-</plist>
+[Aimbot Tuning]
+Aim Smooth = 0.000000;
+Aim Curve = 0.000000;
+Aim Delay = 0.000000;
+Aim FOV = 10.000000;
+Update Delay = 0.000000;
+Autowall = true;
+Auto-Wall Strength = 1.000000;
+Aimlock = false;
+Silent Magnet = true;
+Spread Magnet = true;
+
+[Aimbot Settings]
+FOV Wallcheck = false;
+Draw Aim FOV = false;
+Silent Aim = true;
+Aim Snap = false;
+Simple Autowall = false;
+Auto Fire = true;
+Auto ADS = false;
+
+[Target Adjustment]
+Multipoint = 2;
+Multipoint Strength = 20.000000;
+Point Correction = false;
+Correction Scale = 2.000000;
+
+[Triggerbot]
+Enabled = true;
+ADS Check = false;
+Trigger Magnet = false;
+Burst Fire = true;
+Trigger Delay = 0.000000;
+
+[Prediction]
+Resolve Riot = false;
+Resolve Fake = false;
+Resolve Spin = false;
+Position Adjustment = false;
+Adjustment Scale = 0.000000;
+
+[Anti-Aim Settings]
+Enabled = true;
+X Standing = 1;
+X Moving = 4;
+Y = 5;
+R = 0;
+Wall Detection = 1;
+AA At Target = false;
+Anti Resolver = false;
+
+[Anti-Aim Tuning]
+Switch Spin Direction = false;
+Spin Speed = 10.000000;
+Jitter Amount = 20.000000;
+
+[HvH Misc]
+Fake Lag = true;
+Lag Amount = 170.000000;
+Crouch Bot = false;
+Crouch Delay = 100.000000;
+Crouch Event = 0;
+Crouch On Damage = 1;
+AWall Hitscans = true;
+
+[ESP Filter]
+Draw Allies = true;
+Draw Axis = true;
+Draw Dogs = true;
+Draw Entities = true;
+
+[ESP Options]
+Bounding Box = 3;
+Box Outline = true;
+Bones = true;
+Name = true;
+Weapon = true;
+Health = true;
+Snaplines = true;
+Rank = false;
+Footstep = false;
+vAngle = false;
+
+[ESP Misc]
+Target Scanner = false;
+Radar = true;
+Compass = false;
+Compass Size = 150.000000;
+Visible Warning = false;
+AAM Warning = false;
+Proximity Warning = false;
+XQZ = false;
+Chams = false;
+
+[Misc]
+Render FOV = 78.500000;
+Health Bar = true;
+Crosshair = true;
+Jitter Mod = false;
+Fast Reload = true;
+Full Bright = false;
+Rapid Fire = true;
+Kill Icons = false;
+Red Boxes = true;
+Steady Aim = false;
+Silent Shots = false;
+VSAT = false;
+Probation Bypass = true;
+Phase Shift = false;
+Modder Detection = true;
+Paradox Console = true;
+Third Person = false;
+
+[Server Info]
+Enable = false;
+Hostname = false;
+Gametype = false;
+Mapname = false;
+Latency = false;
+FPS = false;
+Time Played = false;
+Kills = false;
+Deaths = false;
+Kill Streak = false;
+
+[Target Info]
+Enable = false;
+Name = false;
+Visibility = false;
+Threat = false;
+Distance = false;
+Prioritized = false;
+
+[Menu Settings]
+Menu X = 339.000000;
+Menu Y = 52.000000;
+Rainbow Mode = false;
+Bone/Name Color = false;
+Draw Watermark = true;
+Menu Sounds = false;
+
+[Menu Colors]
+Main R = 0.000000;
+Main G = 1.000000;
+Main B = 0.000000;
+Header R = 0.230000;
+Header G = 0.230000;
+Header B = 0.230000;
+Shader R = 0.000000;
+Shader G = 0.000000;
+Shader B = 0.000000;
+Text R = 1.000000;
+Text G = 1.000000;
+Text B = 1.000000;
+
+[ESP Colors]
+Axis R = 1.000000;
+Axis G = 0.000000;
+Axis B = 0.000000;
+Ally R = 0.000000;
+Ally G = 1.000000;
+Ally B = 0.000000;
+Axis Vis R = 1.000000;
+Axis Vis G = 1.000000;
+Axis Vis B = 0.000000;
+Ally Vis R = 0.000000;
+Ally Vis G = 0.600000;
+Ally Vis B = 1.000000;
+Aimbot Target R = 1.000000;
+Aimbot Target G = 1.000000;
+Aimbot Target B = 0.000000;
+Axis Chams R = 1.000000;
+Axis Chams G = 1.000000;
+Axis Chams B = 0.000000;
+Ally Chams R = 0.000000;
+Ally Chams G = 0.600000;
+Ally Chams B = 1.000000;
+Axis Chams Vis R = 1.000000;
+Axis Chams Vis G = 0.000000;
+Axis Chams Vis B = 0.000000;
+Ally Chams Vis R = 0.000000;
+Ally Chams Vis G = 1.000000;
+Ally Chams Vis B = 0.000000;
